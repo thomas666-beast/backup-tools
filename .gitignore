@@ -1,3 +1,7 @@
+# Logs
+BackupDatabase/logs/*.log
+BackupFolder/logs/*.log
+
 # Ignore Carton
 /local
 /cpanfile.snapshot
