@@ -21,11 +21,6 @@ Makefile.PL
 *.a
 *.lib
 
-# Ignore Perl module files
-*.pm
-*.t
-*.pl
-
 # Ignore test files and directories
 t/*.log
 t/*.out
