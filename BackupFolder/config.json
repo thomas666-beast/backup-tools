@@ -1,0 +1,29 @@
+{
+    "localy" : {
+        "enabled" : true,
+        "paths" : [
+            {
+                "source" : "/home/user",
+                "target" : "/home/user/source"
+            }
+        ]
+    },
+    "remotely" : {
+        "enabled" : true,
+        "servers" : [
+            {
+                "ssh" : {
+                    "username" : "dream",
+                    "host" : "remote_host",
+                    "port" : " 22"
+                },
+                "paths" : [
+                    {
+                        "source" : "/home/user",
+                        "target" : "/home/user/source"
+                    }
+                ]
+            }
+        ]
+    }
+}

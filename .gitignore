@@ -1,0 +1,51 @@
+# Ignore Carton
+/local
+/cpanfile.snapshot
+
+# Ignore Perl build files
+blib/
+Makefile
+Makefile.old
+Makefile.PL
+*.bs
+*.o
+*.pmc
+*.pdb
+*.exe
+*.dll
+*.so
+*.a
+*.lib
+
+# Ignore Perl module files
+*.pm
+*.t
+*.pl
+
+# Ignore test files and directories
+t/*.log
+t/*.out
+t/*.err
+t/*.tmp
+t/*.bak
+
+# Ignore local configuration files
+*.local
+*.env
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Ignore Perl-specific temporary files
+*.tmp
+*.temp
+*.orig
+
+# Ignore backup files
+*.bak
+*.old
+*.orig

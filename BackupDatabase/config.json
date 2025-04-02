@@ -1,0 +1,45 @@
+{
+    "localy" : {
+        "enabled" : true,
+        "databases" :[
+            {
+                "engine" : "postgresql",
+                "host" : "127.0.0.1",
+                "user" : "postgres",
+                "password" : "1234",
+                "database_names" : [
+                    "my_db"
+                ],
+                "paths" : [
+                    "/home/user/backups"
+                ]
+            }
+        ]
+    },
+    "remotely" : {
+        "enabled" : true,
+        "servers" : [
+            {
+                "ssh" : {
+                    "username" : "dream",
+                    "host" : "remote_host",
+                    "port" : " 22"
+                },
+                "databases" :[ 
+                    {
+                        "engine" : "postgresql",
+                        "host" : "127.0.0.1",
+                        "user" : "postgres",
+                        "password" : "1234",
+                        "database_names" : [
+                            "my_db"
+                        ],
+                        "paths" : [
+                            "/home/user/backups"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
