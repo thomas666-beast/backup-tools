@@ -54,6 +54,11 @@ my $progress = Term::ProgressBar->new({
     max_update_rate => 1
 });
 
+# Process local backups if enabled
+if ($config->{localy} && $config->{localy}{enabled}) {
+    $current_task = process_local_database_backups($config->{localy}{databases}, $progress, $current_task);
+}
+
 # Process remote backups if enabled
 if ($config->{remotely} && $config->{remotely}{enabled}) {
     $current_task = process_remote_database_backups($config->{remotely}{servers}, $progress, $current_task);
@@ -69,6 +74,12 @@ sub calculate_total_tasks {
     my ($config) = @_;
     my $count = 0;
     
+    if ($config->{localy} && $config->{localy}{enabled}) {
+        foreach my $db (@{$config->{localy}{databases}}) {
+            $count += scalar @{$db->{database_names}} * scalar @{$db->{paths}};
+        }
+    }
+    
     if ($config->{remotely} && $config->{remotely}{enabled}) {
         foreach my $server (@{$config->{remotely}{servers}}) {
             foreach my $db (@{$server->{databases}}) {
@@ -78,6 +89,57 @@ sub calculate_total_tasks {
     }
     
     return $count || 1; # Ensure at least 1 to avoid division by zero
+}
+
+sub process_local_database_backups {
+    my ($databases, $progress, $current_task) = @_;
+    
+    foreach my $db (@$databases) {
+        my $engine = $db->{engine};
+        my $host = $db->{host};
+        my $user = $db->{user};
+        my $pass = $db->{password};
+        
+        foreach my $db_name (@{$db->{database_names}}) {
+            foreach my $backup_path (@{$db->{paths}}) {
+                $progress->message("Preparing LOCAL backup: $db_name");
+                $progress->update($current_task++);
+                
+                # Create dated folder structure: path/db_name/YYYY-MM-DD__HH_MM_SS
+                my $datetime_folder = localtime->strftime('%Y-%m-%d__%H_%M_%S');
+                my $final_path = File::Spec->catdir($backup_path, $db_name, $datetime_folder);
+                
+                unless (-d $final_path) {
+                    make_path($final_path) or die "Failed to create backup directory '$final_path': $!\n";
+                }
+                
+                my $backup_file = File::Spec->catfile($final_path, "$db_name.sql");
+                
+                $progress->message("Backing up LOCAL $db_name to $backup_file");
+                
+                my ($success, $error);
+                if ($engine eq 'mysql') {
+                    ($success, $error) = local_mysql_backup($host, $user, $pass, $db_name, $backup_file, $progress, $current_task);
+                } else {
+                    $error = "Unsupported database engine: $engine";
+                    $success = 0;
+                }
+                
+                if ($success) {
+                    # Compress the backup file
+                    $progress->message("Compressing LOCAL backup...");
+                    compress_backup($backup_file, $progress);
+                    $progress->message("LOCAL backup completed: $db_name -> $final_path/$db_name.sql.gz");
+                } else {
+                    $progress->message("Error: LOCAL backup failed for $db_name: $error");
+                }
+                
+                $current_task++;
+            }
+        }
+    }
+    
+    return $current_task;
 }
 
 sub process_remote_database_backups {
@@ -97,7 +159,7 @@ sub process_remote_database_backups {
             
             foreach my $db_name (@{$db->{database_names}}) {
                 foreach my $local_backup_path (@{$db->{paths}}) {
-                    $progress->message("Preparing to backup: $ssh_host:$db_name");
+                    $progress->message("Preparing REMOTE backup: $ssh_host:$db_name");
                     $progress->update($current_task++);
                     
                     # Create local dated folder structure: local_path/db_name/YYYY-MM-DD__HH_MM_SS
@@ -110,7 +172,7 @@ sub process_remote_database_backups {
                     
                     my $backup_file = File::Spec->catfile($final_local_path, "$db_name.sql");
                     
-                    $progress->message("Backing up $ssh_host:$db_name to local $final_local_path");
+                    $progress->message("Backing up REMOTE $ssh_host:$db_name to local $final_local_path");
                     
                     my ($success, $error);
                     if ($engine eq 'mysql') {
@@ -127,11 +189,11 @@ sub process_remote_database_backups {
                     
                     if ($success) {
                         # Compress the backup file
-                        $progress->message("Compressing backup...");
+                        $progress->message("Compressing REMOTE backup...");
                         compress_backup($backup_file, $progress);
-                        $progress->message("Backup completed: $ssh_host:$db_name -> $final_local_path/$db_name.sql.gz");
+                        $progress->message("REMOTE backup completed: $ssh_host:$db_name -> $final_local_path/$db_name.sql.gz");
                     } else {
-                        $progress->message("Error: Backup failed for $ssh_host:$db_name: $error");
+                        $progress->message("Error: REMOTE backup failed for $ssh_host:$db_name: $error");
                     }
                     
                     $current_task++;
@@ -141,6 +203,38 @@ sub process_remote_database_backups {
     }
     
     return $current_task;
+}
+
+sub local_mysql_backup {
+    my ($host, $user, $pass, $db_name, $backup_file, $progress, $task_num) = @_;
+    
+    my @dump_cmd = (
+        'mysqldump',
+        "--host=$host",
+        "--user=$user",
+        "--password=$pass",
+        '--single-transaction',
+        '--quick',
+        '--skip-lock-tables',
+        $db_name
+    );
+    
+    open(my $out_fh, '>', $backup_file) or return (0, "Cannot open output file: $!");
+    
+    my $stderr;
+    eval {
+        run \@dump_cmd, \undef, $out_fh, \$stderr;
+    };
+    
+    close($out_fh);
+    
+    if ($@) {
+        return (0, $@);
+    } elsif ($stderr) {
+        return (0, $stderr);
+    } else {
+        return (1, '');
+    }
 }
 
 sub remote_mysql_backup {
