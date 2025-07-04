@@ -1,10 +1,10 @@
 {
     "localy" : {
-        "enabled" : true,
+        "enabled" : false,
         "paths" : [
             {
-                "source" : "/home/user",
-                "target" : "/home/user/source"
+                "source" : "/path/source",
+                "target" : "/path/target"
             }
         ]
     },
@@ -13,14 +13,14 @@
         "servers" : [
             {
                 "ssh" : {
-                    "username" : "dream",
-                    "host" : "remote_host",
-                    "port" : " 22"
+                    "username" : "username",
+                    "host" : "host",
+                    "port" : "22"
                 },
                 "paths" : [
                     {
-                        "source" : "/home/user",
-                        "target" : "/home/user/source"
+                        "source" : "/path/source",
+                        "target" : "/path/target"
                     }
                 ]
             }

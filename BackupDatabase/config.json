@@ -1,41 +1,44 @@
 {
-    "localy" : {
-        "enabled" : true,
-        "databases" :[
+    "localy": {
+        "enabled": false,
+        "databases": [
             {
-                "engine" : "postgresql",
-                "host" : "127.0.0.1",
-                "user" : "postgres",
-                "password" : "1234",
-                "database_names" : [
-                    "my_db"
+                "engine": "mysql",
+                "host": "localhost",
+                "user": "your_db_username",
+                "password": "your_db_password",
+                "database_names": [
+                    "database1",
+                    "database2"
                 ],
-                "paths" : [
-                    "/home/user/backups"
+                "paths": [
+                    "/local/backup/path1",
+                    "/local/backup/path2"
                 ]
             }
         ]
     },
-    "remotely" : {
-        "enabled" : true,
-        "servers" : [
+    "remotely": {
+        "enabled": true,
+        "servers": [
             {
-                "ssh" : {
-                    "username" : "dream",
-                    "host" : "remote_host",
-                    "port" : " 22"
+                "ssh": {
+                    "username": "your_ssh_username",
+                    "host": "remote.server.com",
+                    "port": 22
                 },
-                "databases" :[ 
+                "databases": [
                     {
-                        "engine" : "postgresql",
-                        "host" : "127.0.0.1",
-                        "user" : "postgres",
-                        "password" : "1234",
-                        "database_names" : [
-                            "my_db"
+                        "engine": "mysql",
+                        "host": "remote.db.host",
+                        "user": "remote_db_user",
+                        "password": "remote_db_password",
+                        "database_names": [
+                            "remote_db1",
+                            "remote_db2"
                         ],
-                        "paths" : [
-                            "/home/user/backups"
+                        "paths": [
+                            "/local/path/for/remote/backups"
                         ]
                     }
                 ]
